@@ -14,6 +14,11 @@ class Foo {
   Future<int> asyncValueWithNamedArg({required int x}) => Future.value(x);
   Future<int> asyncValueWithNamedArgs({required int x, required int y}) =>
       Future.value(x + y);
+  Future<int> asyncValueWithNamedArgsNonAlphabetical({
+    required int y,
+    required int x,
+  }) =>
+      Future.value(x + y);
   Future<int> asyncValueWithNamedAndPositionalArgs(int x, {required int y}) =>
       Future.value(x + y);
   Stream<int> get streamValue => Stream.value(0);
@@ -298,6 +303,23 @@ void main() {
       expect(await foo.asyncValueWithNamedArgs(x: 1, y: 2), equals(10));
       final captured = verify(
         () => foo.asyncValueWithNamedArgs(
+          x: captureAny(named: 'x'),
+          y: captureAny(named: 'y'),
+        ),
+      ).captured;
+      expect(captured, equals([1, 2]));
+    });
+
+    test(
+        'captureAny captures any named argument when named arguments are'
+        ' not declared in alphabetical order', () async {
+      when(
+        () => foo.asyncValueWithNamedArgsNonAlphabetical(x: 1, y: 2),
+      ).thenAnswer((_) => Future.value(10));
+      expect(await foo.asyncValueWithNamedArgsNonAlphabetical(x: 1, y: 2),
+          equals(10));
+      final captured = verify(
+        () => foo.asyncValueWithNamedArgsNonAlphabetical(
           x: captureAny(named: 'x'),
           y: captureAny(named: 'y'),
         ),
